@@ -24,15 +24,11 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Get output path
-        id: output_path
-        run: echo $PWD/*/bin/Release
-
       - name: Upload built DLLs
         uses: actions/upload-artifact@v2
         with:
           name: built-dlls
-          path: ${{ steps.output_path.outputs.stdout }}
+          path: "**/bin/Release/**/*.dll"
 
   release:
     needs: build
