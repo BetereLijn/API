@@ -25,13 +25,14 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Get output path
-        run: echo "::set-env name=BUILD_OUTPUT_PATH::$(echo '$PWD')/bin/Release"
+        id: output_path
+        run: echo $PWD/bin/Release
 
       - name: Upload built DLLs
         uses: actions/upload-artifact@v2
         with:
           name: built-dlls
-          path: ${{ env.BUILD_OUTPUT_PATH }}/*.dll
+          path: ${{ steps.output_path.outputs.stdout }}/*.dll
 
   release:
     needs: build
