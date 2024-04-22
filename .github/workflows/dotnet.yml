@@ -1,7 +1,4 @@
-# This workflow will build a .NET project and publish DLLs to a release
-# For more information see: 
-#   - Building and testing .NET: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-#   - Creating releases: https://docs.github.com/en/actions/creating-releases/creating-releases
+# This workflow will build a .NET project, create artifacts, and publish DLLs to a release
 
 name: .NET
 
@@ -26,14 +23,23 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      - name: Publish (only on push to master)
-        if: github.ref == 'refs/heads/master'
+      - name: Capture output path (optional, adjust based on your needs)
+        uses: actions/runner-os@v3
+        with:
+          secrets: ${{ secrets.release }} 
+        run: |
+          if [[ runner.os == 'Linux' ]]; then
+            output_path=$(echo $BuildOutputPath)
+          elif [[ runner.os == 'Windows' ]]; then
+            output_path=$(echo %BuildOutputPath%)
+          fi
+          echo "## Output Path: $output_path"
+      - name: Upload built DLLs
         uses: actions/upload-artifact@v3
         with:
           name: built-dlls
-          path: $(ProjectDir)/bin/Release/*.dll
+          path: ${{ env.output_path }}/*.dll 
 
-  # This job will be triggered only when the build job finishes successfully
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -46,11 +52,11 @@ jobs:
         if: github.ref == 'refs/heads/master'
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needs a release token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}  # Use the commit SHA as the tag name
-          release_name: ${{ github.sha }} - Built DLLs  # Release name with SHA
-          body: ${{ steps.build.outputs.build-output }}  # You can optionally add build output here
-          draft: false  # Set to true for draft releases
-          prerelease: true  # Set to true for pre-releases
-          file_glob: '**/*.dll'  # Upload all downloaded dll files
+          tag_name: ${{ github.sha }}
+          release_name: ${{ github.sha }} - Built DLLs
+          body: ${{ steps.build.outputs.build-output }} 
+          draft: false
+          prerelease: true
+          file_glob: '**/*.dll'
