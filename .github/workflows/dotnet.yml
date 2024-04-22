@@ -41,11 +41,12 @@ jobs:
           name: built-dlls
 
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.release }}
         with:
-          tag_name: ${{ github.sha }}
+          tag_name: ${{ github.sha:0:8 }} # Using first 8 characters of the commit hash
           release_name: ${{ github.sha }} - Built DLLs
           body: |
             Release with built DLLs
