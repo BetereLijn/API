@@ -8,51 +8,49 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 8.0.x
+
       - name: Restore dependencies
         run: dotnet restore
+
       - name: Build
-        run: dotnet build --configuration Release  # Assuming Release configuration for built DLLs
-      - name: Get output path (optional, adjust based on your needs)
-        run: |
-          if [[ runner.os == 'Linux' ]]; then
-            output_path=$(echo "$BuildOutputPath/Release")  # Assuming Release folder for DLLs on Linux
-          elif [[ runner.os == 'Windows' ]]; then
-            output_path=$(echo "%BuildOutputPath%\Release")  # Assuming Release folder for DLLs on Windows
-          fi
-          echo "## Output Path: $output_path"
+        run: dotnet build --configuration Release
+
+      - name: Get output path
+        run: echo "::set-env name=BUILD_OUTPUT_PATH::$(echo '$PWD')/bin/Release"
+
       - name: Upload built DLLs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: built-dlls
-          path: ${{ env.output_path }}/*.dll
+          path: ${{ env.BUILD_OUTPUT_PATH }}/*.dll
 
   release:
-    needs: build  # Ensure 'release' job runs after 'build' finishes
+    needs: build
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - name: Download built DLLs
+        uses: actions/download-artifact@v2
         with:
           name: built-dlls
-      - name: Create release (only on push to master)
-        if: github.ref == 'refs/heads/master'
+
+      - name: Create Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.release }}
         with:
           tag_name: ${{ github.sha }}
           release_name: ${{ github.sha }} - Built DLLs
-          body: ${{ steps.build.outputs.build-output }}
+          body: |
+            Release with built DLLs
           draft: false
           prerelease: true
-          file_glob: '**/*.dll'
