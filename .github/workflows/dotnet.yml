@@ -23,15 +23,19 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      - name: Capture output path (optional, adjust based on your needs)
-        uses: actions/runner-os@v3
-        with:
-          secrets: ${{ secrets.release }}
+      - name: Get output path (optional, adjust based on your needs)
+        run: | 
+          if [[ runner.os == 'Linux' ]]; then
+            output_path=$(echo $BuildOutputPath)
+          elif [[ runner.os == 'Windows' ]]; then
+            output_path=$(echo %BuildOutputPath%)
+          fi
+          echo "## Output Path: $output_path"
       - name: Upload built DLLs
         uses: actions/upload-artifact@v3
         with:
           name: built-dlls
-          path: ${{ env.output_path }}/*.dll 
+          path: ${{ env.output_path }}/*.dll
 
   release:
     needs: build
@@ -45,11 +49,11 @@ jobs:
         if: github.ref == 'refs/heads/master'
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.release }}
         with:
           tag_name: ${{ github.sha }}
           release_name: ${{ github.sha }} - Built DLLs
-          body: ${{ steps.build.outputs.build-output }}
+          body: ${{ steps.build.outputs.build-output }} 
           draft: false
           prerelease: true
           file_glob: '**/*.dll'
