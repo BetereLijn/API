@@ -51,4 +51,4 @@ jobs:
           body: |
             Release with built DLLs
           draft: false
-          prerelease: true
+          prerelease: false
