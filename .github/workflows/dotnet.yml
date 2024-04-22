@@ -20,13 +20,13 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build --configuration Release  # Assuming Release configuration for built DLLs
       - name: Get output path (optional, adjust based on your needs)
         run: |
           if [[ runner.os == 'Linux' ]]; then
-            output_path=$(echo $BuildOutputPath)
+            output_path=$(echo "$BuildOutputPath/Release")  # Assuming Release folder for DLLs on Linux
           elif [[ runner.os == 'Windows' ]]; then
-            output_path=$(echo %BuildOutputPath%)
+            output_path=$(echo "%BuildOutputPath%\Release")  # Assuming Release folder for DLLs on Windows
           fi
           echo "## Output Path: $output_path"
       - name: Upload built DLLs
@@ -36,7 +36,7 @@ jobs:
           path: ${{ env.output_path }}/*.dll
 
   release:
-    needs: build
+    needs: build  # Ensure 'release' job runs after 'build' finishes
     runs-on: ubuntu-latest
 
     steps:
