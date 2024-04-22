@@ -46,8 +46,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.release }}
         with:
-          tag_name: ${{ github.sha:0:8 }} # Using first 8 characters of the commit hash
-          release_name: ${{ github.sha }} - Built DLLs
+          tag_name: ${{ github.sha }}-${{ github.run_number }}
+          release_name: Release ${{ github.run_number }} - Built DLLs
           body: |
             Release with built DLLs
           draft: false
