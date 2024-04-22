@@ -26,14 +26,7 @@ jobs:
       - name: Capture output path (optional, adjust based on your needs)
         uses: actions/runner-os@v3
         with:
-          secrets: ${{ secrets.release }} 
-        run: |
-          if [[ runner.os == 'Linux' ]]; then
-            output_path=$(echo $BuildOutputPath)
-          elif [[ runner.os == 'Windows' ]]; then
-            output_path=$(echo %BuildOutputPath%)
-          fi
-          echo "## Output Path: $output_path"
+          secrets: ${{ secrets.<YOUR_SECRET_NAME> }}
       - name: Upload built DLLs
         uses: actions/upload-artifact@v3
         with:
@@ -56,7 +49,7 @@ jobs:
         with:
           tag_name: ${{ github.sha }}
           release_name: ${{ github.sha }} - Built DLLs
-          body: ${{ steps.build.outputs.build-output }} 
+          body: ${{ steps.build.outputs.build-output }}
           draft: false
           prerelease: true
           file_glob: '**/*.dll'
