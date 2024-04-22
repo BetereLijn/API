@@ -26,7 +26,7 @@ jobs:
       - name: Capture output path (optional, adjust based on your needs)
         uses: actions/runner-os@v3
         with:
-          secrets: ${{ secrets.<YOUR_SECRET_NAME> }}
+          secrets: ${{ secrets.release }}
       - name: Upload built DLLs
         uses: actions/upload-artifact@v3
         with:
